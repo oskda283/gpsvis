@@ -1,25 +1,31 @@
-var canvas, ctx;
-var translatePos = {x: 0, y: 0};
-var scale = 1.0; 
-var rotAngle = 0;
-var STEPSIZE = 8;
-var img;
+var canvas, ctx, translatePos, scale, rotAngle, img;
+var STEPSIZE = 50;
+var ROTSPEED = Math.PI/30;
+var SCALESPEED = 1.2;
 
-function initImage(url)
+function initImage(e)
 {
-   	var image = new Image();
-    image.onload = function()
+   	img = new Image();
+    img.onload = function()
     {	     
-    	draw(image, scale, translatePos);       
+    	draw(img, scale, translatePos);
+    	$( "#file-input-div" ).hide();       
     }
-    image.src = url;
-    return image;
+    img.src = e.target.result;
+    img;
+}
+
+function resetCanvas()
+{
+   	translatePos = {x: 0, y: 0};
+	scale = 1.0; 
+	rotAngle = 0;
 }
 
 function draw(image, scale, translatePos, rotAngle) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.translate(canvas.width / 2, canvas.height / 2);  
     ctx.rotate(rotAngle);
     ctx.scale(scale,scale);	
     ctx.translate(translatePos.x,translatePos.y);  
@@ -30,37 +36,40 @@ function draw(image, scale, translatePos, rotAngle) {
 
 function onKeyDown(evt) {
 	if (evt.keyCode == 39 || evt.keyCode == 68){
-		translatePos = addVector( adjustedVector(-1,0,STEPSIZE) , translatePos);
+		translatePos = addVector( scaleVector(adjustedVector(-1,0),STEPSIZE) , translatePos);
 	}
 	else if (evt.keyCode == 37 || evt.keyCode == 65){
-		translatePos = addVector( adjustedVector(1,0,STEPSIZE) , translatePos);
+		translatePos = addVector( scaleVector(adjustedVector(1,0),STEPSIZE) , translatePos);
 	}
 	else if (evt.keyCode == 38 || evt.keyCode == 87) {
-		translatePos = addVector( adjustedVector(0,1,STEPSIZE) , translatePos);
+		translatePos = addVector( scaleVector(adjustedVector(0,1),STEPSIZE) , translatePos);
 	}
 	else if (evt.keyCode == 40 || evt.keyCode == 83) {
-		translatePos = addVector( adjustedVector(0,-1,STEPSIZE) , translatePos);
+		translatePos = addVector( scaleVector(adjustedVector(0,-1),STEPSIZE) , translatePos);
 	}
-	else if (evt.keyCode == 81) rotAngle += 0.1;
-	else if (evt.keyCode == 69) rotAngle -= 0.1;
+	else if (evt.keyCode == 81) rotAngle += ROTSPEED;
+	else if (evt.keyCode == 69) rotAngle -= ROTSPEED;
+	else if (evt.keyCode == 32) resetCanvas();
 	
 	draw(img, scale, translatePos, rotAngle);
 }
 
 function scroll(e) {
     if(e.originalEvent.wheelDelta /120 > 0) {
-        scale = scale * 1.2;
+        scale = scale * SCALESPEED;
+        scale=Math.min(scale,20);
    		draw(img, scale, translatePos, rotAngle);   
     }
     else{
-        scale = scale / 1.2;
+        scale = scale / SCALESPEED;
+        scale=Math.max(scale,0.05);
    		draw(img, scale, translatePos, rotAngle);   
     }
 }	
 
-function adjustedVector(_x,_y,scale){
+function adjustedVector(_x,_y){
 	moveVec = rotateVector({x: _x, y: _y},rotAngle);
-	return scaleVector(moveVec,scale);	
+	return scaleVector(moveVec,1/scale);	
 }
 
 function rotateVector(vector, rotAangle){
@@ -77,6 +86,25 @@ function addVector(vector1, vector2){
 	return {x: vector1.x + vector2.x,
 			y: vector1.y + vector2.y}
 }
+	
+function mouseMove(e){
+	translatePos = addVector( adjustedVector(e.pageX-x,e.pageY-y) , translatePos);
+	x = e.pageX;
+	y = e.pageY;
+	draw(img, scale, translatePos, rotAngle);
+}
+
+function mouseDown(e){
+  x = e.pageX;
+  y = e.pageY;
+  drag = true;
+  canvas.onmousemove = mouseMove;
+ //}
+}
+
+function mouseUp(){
+ canvas.onmousemove = null; 
+}
 
 
 $(document).ready(function() {
@@ -87,10 +115,25 @@ $(document).ready(function() {
 	canvas.style.height='100%';
 	canvas.width  = $(canvas).parent().width();
 	canvas.height = $(canvas).parent().height();
-
-	img = initImage("http://kartarkiv.turebergsif.se/map_images/593.jpg");
+	resetCanvas();
 
 	$(canvas).bind('mousewheel', scroll); //TODO: Works only for chrome???
+
+	canvas.onmousedown = mouseDown;
+	canvas.onmouseup = mouseUp;
+
+	$('#file-input').change(function(e) {
+        var file = e.target.files[0],
+            imageType = /image.*/;
+        
+        if (!file.type.match(imageType))
+            return;
+        
+        var reader = new FileReader();
+        reader.onload = initImage;
+        reader.readAsDataURL(file);
+        
+    });
 });
 
 $(document).keydown(onKeyDown);

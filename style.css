@@ -6,8 +6,11 @@ body {
   min-height: 100%;
   overflow: hidden;
 }
-#canvas-container
-{
-	width: 100%; 
-	min-height: 100%;
+
+#file-input-div {
+	position:fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -10em; /*set to a negative number 1/2 of your width*/
+}
 }
