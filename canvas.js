@@ -7,13 +7,30 @@ function initImage(e)
 {
    	img = new Image();
     img.onload = function()
-    {	     
+    {	  
+    	resetCanvas();   
     	draw(img, scale, translatePos);
-    	$( "#file-input-div" ).hide();       
+    	$( "#file-input-div" ).hide();
+    	$(document).keydown(onKeyDown);       
     }
     img.src = e.target.result;
-    img;
 }
+
+function initImageUrl(url)
+{
+	
+   	img = new Image();
+    img.onload = function()
+    {	
+		resetCanvas();     
+    	draw(img, scale, translatePos);
+    	$( "#file-input-div" ).hide();
+    	$(document).keydown(onKeyDown);       
+    }
+    img.src = url;
+}
+
+
 
 function resetCanvas()
 {
@@ -115,7 +132,6 @@ $(document).ready(function() {
 	canvas.style.height='100%';
 	canvas.width  = $(canvas).parent().width();
 	canvas.height = $(canvas).parent().height();
-	resetCanvas();
 
 	$(canvas).bind('mousewheel', scroll); //TODO: Works only for chrome???
 
@@ -136,4 +152,3 @@ $(document).ready(function() {
     });
 });
 
-$(document).keydown(onKeyDown);

@@ -7,10 +7,12 @@
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-	<div id="file-input-div">
-		<input type="file" id="file-input">
+	<div id="file-input-div" class="jumbotron">
+		<input type="file" id="file-input"></br>
+		<input id="image-url" type="textfield" placeholder="URL">
+		<button onclick="initImageUrl(document.getElementById('image-url').value);">Upload from URL</button>
 
 	</div>
-		<canvas>Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas>Your browser does not support the HTML5 canvas tag.</canvas>
 </body>
 </html>
