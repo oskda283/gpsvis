@@ -1,7 +1,9 @@
+paper.install(window);
 var canvas, ctx, translatePos, scale, rotAngle, img;
 var STEPSIZE = 50;
 var ROTSPEED = Math.PI/30;
 var SCALESPEED = 1.2;
+var translatePos = new Point(0, 0); 
 
 function initImage(e)
 {
@@ -30,8 +32,6 @@ function initImageUrl(url)
     img.src = url;
 }
 
-
-
 function resetCanvas()
 {
    	translatePos = {x: 0, y: 0};
@@ -53,16 +53,16 @@ function draw(image, scale, translatePos, rotAngle) {
 
 function onKeyDown(evt) {
 	if (evt.keyCode == 39 || evt.keyCode == 68){
-		translatePos = addVector( scaleVector(adjustedVector(-1,0),STEPSIZE) , translatePos);
+		translatePos = adjustedVector(new Point(-1,0)).multiply(STEPSIZE).add(translatePos);
 	}
 	else if (evt.keyCode == 37 || evt.keyCode == 65){
-		translatePos = addVector( scaleVector(adjustedVector(1,0),STEPSIZE) , translatePos);
+		translatePos = adjustedVector(new Point(1,0)).multiply(STEPSIZE).add(translatePos);
 	}
 	else if (evt.keyCode == 38 || evt.keyCode == 87) {
-		translatePos = addVector( scaleVector(adjustedVector(0,1),STEPSIZE) , translatePos);
+		translatePos = adjustedVector(new Point(0,1)).multiply(STEPSIZE).add(translatePos);
 	}
 	else if (evt.keyCode == 40 || evt.keyCode == 83) {
-		translatePos = addVector( scaleVector(adjustedVector(0,-1),STEPSIZE) , translatePos);
+		translatePos = adjustedVector(new Point(0,-1)).multiply(STEPSIZE).add(translatePos);
 	}
 	else if (evt.keyCode == 81) rotAngle += ROTSPEED;
 	else if (evt.keyCode == 69) rotAngle -= ROTSPEED;
@@ -84,28 +84,13 @@ function scroll(e) {
     }
 }	
 
-function adjustedVector(_x,_y){
-	moveVec = rotateVector({x: _x, y: _y},rotAngle);
-	return scaleVector(moveVec,1/scale);	
-}
-
-function rotateVector(vector, rotAangle){
-	return {x: vector.x * Math.cos(rotAngle) + vector.y * Math.sin(rotAngle),
-			y: -vector.x * Math.sin(rotAngle) + vector.y * Math.cos(rotAngle)};
-}
-
-function scaleVector(vector,scale){
-	return {x: vector.x * scale,
-			y: vector.y * scale}
-}
-
-function addVector(vector1, vector2){
-	return {x: vector1.x + vector2.x,
-			y: vector1.y + vector2.y}
+function adjustedVector(vector){
+    //Adjust moving vector to canvas orientation
+	return vector.rotate(-rotAngle*180/Math.PI,new Point(0,0)).divide(scale);
 }
 	
 function mouseMove(e){
-	translatePos = addVector( adjustedVector(e.pageX-x,e.pageY-y) , translatePos);
+	translatePos = adjustedVector(new Point(e.pageX-x,e.pageY-y)).add(translatePos);
 	x = e.pageX;
 	y = e.pageY;
 	draw(img, scale, translatePos, rotAngle);
