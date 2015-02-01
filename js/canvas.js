@@ -3,7 +3,9 @@ var canvas, ctx, translatePos, scale, rotAngle, img;
 var STEPSIZE = 50;
 var ROTSPEED = Math.PI/30;
 var SCALESPEED = 1.2;
-var translatePos = new Point(0, 0); 
+var translatePos = new Point(0, 0);
+var route = {x: [], y: []};
+var state = "move";
 
 function initImage(e)
 {
@@ -12,7 +14,8 @@ function initImage(e)
     {	  
     	resetCanvas();   
     	draw(img, scale, translatePos);
-    	$( "#file-input-div" ).hide();
+    	$( "#file-input-div" ).hide();        
+        $( "#toolbox" ).show();
     	$(document).keydown(onKeyDown);       
     }
     img.src = e.target.result;
@@ -27,7 +30,8 @@ function initImageUrl(url)
 		resetCanvas();     
     	draw(img, scale, translatePos);
     	$( "#file-input-div" ).hide();
-    	$(document).keydown(onKeyDown);       
+        $( "#toolbox" ).show();
+    	$(document).keydown(onKeyDown);
     }
     img.src = url;
 }
@@ -39,17 +43,28 @@ function resetCanvas()
 	rotAngle = 0;
 }
 
-function draw(image, scale, translatePos, rotAngle) {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+function draw(image, scale, translatePos, rotAngle) { // Draw it
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     ctx.translate(canvas.width / 2, canvas.height / 2);  
     ctx.rotate(rotAngle);
     ctx.scale(scale,scale);	
     ctx.translate(translatePos.x,translatePos.y);  
 	ctx.drawImage(image, -image.width / 2, -image.height / 2);
+    drawPath()
 	ctx.restore();
 }
 
+function drawPath() {
+    ctx.beginPath(); 
+    ctx.lineWidth="4";
+    ctx.strokeStyle="red"; // Green path
+    ctx.moveTo(route.x[0],route.y[0]);
+    for (i = 1; i < route.x.length; i++){
+        ctx.lineTo(route.x[i],route.y[i]);
+    }    
+    ctx.stroke();
+}
 
 function onKeyDown(evt) {
 	if (evt.keyCode == 39 || evt.keyCode == 68){
@@ -96,16 +111,36 @@ function mouseMove(e){
 	draw(img, scale, translatePos, rotAngle);
 }
 
+function setState(newState, element){
+    state = newState;    
+    $("#toolbox i").css("color", "black");
+    element.style.color = "green";    
+    
+}
+
 function mouseDown(e){
-  x = e.pageX;
-  y = e.pageY;
-  drag = true;
-  canvas.onmousemove = mouseMove;
- //}
+    if(state == "move"){
+        x = e.pageX;
+        y = e.pageY;
+        drag = true;
+        canvas.onmousemove = mouseMove;
+    } else if(state == "draw"){
+        addRoutePoint(e)
+        canvas.onmousemove = null; 
+    }
 }
 
 function mouseUp(){
  canvas.onmousemove = null; 
+}
+
+function addRoutePoint(e){
+  routePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2)
+  routePoint = adjustedVector(routePoint)
+  routePoint = routePoint.subtract(translatePos)
+  route.x[route.x.length] = routePoint.x;
+  route.y[route.y.length] = routePoint.y;
+  draw(img, scale, translatePos, rotAngle);
 }
 
 
