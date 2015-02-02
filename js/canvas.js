@@ -6,9 +6,9 @@ var SCALESPEED = 1.2;
 var translatePos = new Point(0, 0);
 var route = {x: [], y: []};
 var state = "move";
+var close = false;
 
-function initImage(e)
-{
+function initImage(e){
    	img = new Image();
     img.onload = function()
     {	  
@@ -21,8 +21,7 @@ function initImage(e)
     img.src = e.target.result;
 }
 
-function initImageUrl(url)
-{
+function initImageUrl(url){
 	
    	img = new Image();
     img.onload = function()
@@ -36,8 +35,7 @@ function initImageUrl(url)
     img.src = url;
 }
 
-function resetCanvas()
-{
+function resetCanvas(){
    	translatePos = {x: 0, y: 0};
 	scale = 1.0; 
 	rotAngle = 0;
@@ -46,13 +44,17 @@ function resetCanvas()
 function draw(image, scale, translatePos, rotAngle) { // Draw it
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);  
-    ctx.rotate(rotAngle);
-    ctx.scale(scale,scale);	
-    ctx.translate(translatePos.x,translatePos.y);  
+    setView();
 	ctx.drawImage(image, -image.width / 2, -image.height / 2);
     drawPath()
 	ctx.restore();
+}
+
+function setView(){
+    ctx.translate(canvas.width / 2, canvas.height / 2);  
+    ctx.rotate(rotAngle);
+    ctx.scale(scale,scale); 
+    ctx.translate(translatePos.x,translatePos.y);  
 }
 
 function drawPath() {
@@ -64,26 +66,69 @@ function drawPath() {
         ctx.lineTo(route.x[i],route.y[i]);
     }    
     ctx.stroke();
+    if(state=="draw")
+        for (i = 0; i < route.x.length; i++){
+            drawPoint(route.x[i],route.y[i], 2);
+        }
+   
+}
+
+function drawPoint(px,py,size) {
+    ctx.lineWidth="3";
+    ctx.strokeStyle="black";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(px,py, size, 0, Math.PI*2, true);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
 }
 
 function onKeyDown(evt) {
 	if (evt.keyCode == 39 || evt.keyCode == 68){
-		translatePos = adjustedVector(new Point(-1,0)).multiply(STEPSIZE).add(translatePos);
+		step("right");
 	}
 	else if (evt.keyCode == 37 || evt.keyCode == 65){
-		translatePos = adjustedVector(new Point(1,0)).multiply(STEPSIZE).add(translatePos);
+		step("left");
 	}
 	else if (evt.keyCode == 38 || evt.keyCode == 87) {
-		translatePos = adjustedVector(new Point(0,1)).multiply(STEPSIZE).add(translatePos);
+		step("up");
 	}
 	else if (evt.keyCode == 40 || evt.keyCode == 83) {
-		translatePos = adjustedVector(new Point(0,-1)).multiply(STEPSIZE).add(translatePos);
+		step("down");
 	}
-	else if (evt.keyCode == 81) rotAngle += ROTSPEED;
-	else if (evt.keyCode == 69) rotAngle -= ROTSPEED;
-	else if (evt.keyCode == 32) resetCanvas();
-	
-	draw(img, scale, translatePos, rotAngle);
+	else if (evt.keyCode == 81) rotate("right");
+	else if (evt.keyCode == 69) rotate("left");
+	else if (evt.keyCode == 32) {
+        resetCanvas();
+        draw(img, scale, translatePos, rotAngle);
+    }
+}
+
+function rotate(dir){
+    if (dir=="right"){
+        rotAngle += ROTSPEED;
+    }
+    else if (dir=="left"){
+        rotAngle -= ROTSPEED;
+    }
+    draw(img, scale, translatePos, rotAngle);
+}
+
+function step(dir){
+    if (dir=="right"){
+        translatePos = fromWindowToCanvas(new Point(-1,0)).multiply(STEPSIZE).add(translatePos);
+    }
+    else if (dir=="left"){
+        translatePos = fromWindowToCanvas(new Point(1,0)).multiply(STEPSIZE).add(translatePos);
+    }
+    else if (dir=="up") {
+        translatePos = fromWindowToCanvas(new Point(0,1)).multiply(STEPSIZE).add(translatePos);
+    }
+    else if (dir=="down") {
+        translatePos = fromWindowToCanvas(new Point(0,-1)).multiply(STEPSIZE).add(translatePos);
+    }
+    draw(img, scale, translatePos, rotAngle);
 }
 
 function scroll(e) {
@@ -99,50 +144,114 @@ function scroll(e) {
     }
 }	
 
-function adjustedVector(vector){
+function fromWindowToCanvas(vector){
     //Adjust moving vector to canvas orientation
 	return vector.rotate(-rotAngle*180/Math.PI,new Point(0,0)).divide(scale);
 }
 	
 function mouseMove(e){
-	translatePos = adjustedVector(new Point(e.pageX-x,e.pageY-y)).add(translatePos);
+	translatePos = fromWindowToCanvas(new Point(e.pageX-x,e.pageY-y)).add(translatePos);
 	x = e.pageX;
 	y = e.pageY;
 	draw(img, scale, translatePos, rotAngle);
 }
 
+function mouseMoveDraw(e){
+    mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
+    mousePoint = fromWindowToCanvas(mousePoint);
+    mousePoint = mousePoint.subtract(translatePos);
+    routePoint = findClosestPoint(route,mousePoint);
+    if(routePoint.dist < 5 / scale){
+        ctx.save();
+        setView(); 
+        drawPoint(route.x[routePoint.idx],route.y[routePoint.idx],4);
+        ctx.restore();        
+        close = true;
+    } else if (close == true){
+        draw(img, scale, translatePos, rotAngle);
+        close = false; 
+    }   
+}
+
 function setState(newState, element){
     state = newState;    
     $("#toolbox i").css("color", "black");
-    element.style.color = "green";    
-    
+    element.style.color = "green";
+    draw(img, scale, translatePos, rotAngle); 
+    if(state == "draw"){
+        canvas.onmousemove = mouseMoveDraw; 
+    } else {
+        canvas.onmousemove = null;
+    }
 }
 
 function mouseDown(e){
+    canvas.onmousemove = null; 
     if(state == "move"){
         x = e.pageX;
         y = e.pageY;
         drag = true;
         canvas.onmousemove = mouseMove;
     } else if(state == "draw"){
-        addRoutePoint(e)
-        canvas.onmousemove = null; 
+        if(e.ctrlKey){
+            removeClosestPoint(e); 
+        } else {
+            addRoutePoint(e);
+        }            
+        canvas.onmousemove = mouseMoveDraw; 
     }
 }
 
-function mouseUp(){
- canvas.onmousemove = null; 
+function mouseUp(){ 
+    if(state == "move"){
+        canvas.onmousemove = null;
+    }
 }
 
 function addRoutePoint(e){
   routePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2)
-  routePoint = adjustedVector(routePoint)
+  routePoint = fromWindowToCanvas(routePoint)
   routePoint = routePoint.subtract(translatePos)
   route.x[route.x.length] = routePoint.x;
   route.y[route.y.length] = routePoint.y;
   draw(img, scale, translatePos, rotAngle);
 }
 
+function removeClosestPoint(e){
+    mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
+    mousePoint = fromWindowToCanvas(mousePoint);
+    mousePoint = mousePoint.subtract(translatePos);
+    routePoint = findClosestPoint(route,mousePoint);
+    if(routePoint.dist < 5 / scale){
+        removeRoutepoint(routePoint.idx);
+        draw(img, scale, translatePos, rotAngle);
+    }
+}
+
+function removeRoutepoint(point) {
+    route.x.splice(point,1);
+    route.y.splice(point,1);
+    draw(img, scale, translatePos, rotAngle);
+}
+
+function findClosestPoint(path,point) {
+    minDist = Infinity;
+    minIdx = -1;
+    for (i = 0; i < path.x.length; i++){
+        dist = squareDist(path.x[i],path.y[i],point.x,point.y);
+        if(dist < minDist){
+            minDist = dist;
+            minIdx = i;
+        }
+    }
+    return {idx: minIdx, dist: minDist}; 
+}
+
+function squareDist(xa,ya,xb,yb){
+    xd = xa - xb;
+    yd = ya - yb;
+    return Math.sqrt(xd*xd + yd*yd);
+}
 
 $(document).ready(function() {
 	canvas = document.querySelector('canvas');	

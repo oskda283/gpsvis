@@ -33,13 +33,31 @@
        </form>
     </div>
     <div id="toolbox">
- 		<i class="fa fa-arrows fa-4x" style="margin-left: 5%" onclick="setState('move',this)"></i> 
-	  	<i class="fa fa-pencil fa-4x" style="margin-left: 10%" onclick="setState('draw',this)"></i>
-	  	<i class="fa fa-crosshairs fa-4x" style="margin-left: 10%; margin-right: 10%"></i>
-	 	<i class="fa fa-save fa-4x" style="margin-right: 10%"></i>
-	 	<i class="fa fa-cog fa-4x" style="margin-right: 0%"></i>
+ 		<i class="fa fa-arrows fa-4x" style="margin-left: 5%; color: green;" onclick="setState('move',this)"></i> 
+	  	<i class="fa fa-pencil fa-4x" style="margin-left: 10%; color: black;" onclick="setState('draw',this)"></i>
+	  	<i class="fa fa-crosshairs fa-4x" style="margin-left: 10%; color: black;; margin-right: 10%"></i>
+	 	<i class="fa fa-save fa-4x" style="margin-right: 10%; color: black;" data-toggle="modal" data-target="#myModal"></i>
+	 	<i class="fa fa-cog fa-4x" style="margin-right: 0%; color: black;"></i>
 	</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Save</h4>
+      </div>
+      <div class="modal-body">
+       	Right click on the map and choose "Save image as..." to save the map.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 	<canvas>Your browser does not support the HTML5 canvas tag.</canvas>
-	
 </body>
 </html>
