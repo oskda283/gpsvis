@@ -5,16 +5,18 @@ var ROTSPEED = Math.PI/30;
 var SCALESPEED = 1.2;
 var translatePos = new Point(0, 0);
 var route = {x: [], y: []};
+var gpsRoute = false;
 var state = "move";
 var close = false;
+var fade = 0;
 
 function initImage(e){
-   	img = new Image();
+    img = new Image();
     img.onload = function()
-    {	  
+    {	
+        $( "#file-input-div" ).hide();  
     	resetCanvas();   
-    	draw(img, scale, translatePos);
-    	$( "#file-input-div" ).hide();        
+    	fadeDraw();     
         $( "#toolbox" ).show();
     	$(document).keydown(onKeyDown);       
     }
@@ -22,13 +24,12 @@ function initImage(e){
 }
 
 function initImageUrl(url){
-	
    	img = new Image();
     img.onload = function()
     {	
+        $( "#file-input-div" ).hide();
 		resetCanvas();     
-    	draw(img, scale, translatePos);
-    	$( "#file-input-div" ).hide();
+    	fadeDraw();
         $( "#toolbox" ).show();
     	$(document).keydown(onKeyDown);
     }
@@ -50,6 +51,22 @@ function draw(image, scale, translatePos, rotAngle) { // Draw it
 	ctx.restore();
 }
 
+function fadeDraw() { 
+    if (fade > 100) {
+            return;
+    }
+    requestAnimationFrame( fadeDraw); 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    setView();
+    ctx.globalAlpha = fade/100;
+    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    drawPath()
+    ctx.restore();   
+    fade++;
+}
+
+
 function setView(){
     ctx.translate(canvas.width / 2, canvas.height / 2);  
     ctx.rotate(rotAngle);
@@ -60,13 +77,13 @@ function setView(){
 function drawPath() {
     ctx.beginPath(); 
     ctx.lineWidth="4";
-    ctx.strokeStyle="red"; // Green path
+    ctx.strokeStyle="red";
     ctx.moveTo(route.x[0],route.y[0]);
     for (i = 1; i < route.x.length; i++){
         ctx.lineTo(route.x[i],route.y[i]);
     }    
     ctx.stroke();
-    if(state=="draw")
+    if(state=="draw" && !gpsRoute)
         for (i = 0; i < route.x.length; i++){
             drawPoint(route.x[i],route.y[i], 2);
         }
@@ -161,9 +178,10 @@ function mouseMoveDraw(e){
     mousePoint = fromWindowToCanvas(mousePoint);
     mousePoint = mousePoint.subtract(translatePos);
     routePoint = findClosestPoint(route,mousePoint);
-    if(routePoint.dist < 5 / scale){
+    if(routePoint.dist < 15 / scale){
+        draw(img, scale, translatePos, rotAngle);
         ctx.save();
-        setView(); 
+        setView();
         drawPoint(route.x[routePoint.idx],route.y[routePoint.idx],4);
         ctx.restore();        
         close = true;
@@ -176,7 +194,7 @@ function mouseMoveDraw(e){
 function setState(newState, element){
     state = newState;    
     $("#toolbox i").css("color", "black");
-    element.style.color = "green";
+    element.style.color = "#006dcc";
     draw(img, scale, translatePos, rotAngle); 
     if(state == "draw"){
         canvas.onmousemove = mouseMoveDraw; 
@@ -192,12 +210,14 @@ function mouseDown(e){
         y = e.pageY;
         drag = true;
         canvas.onmousemove = mouseMove;
-    } else if(state == "draw"){
+    } else if(state == "draw" && !gpsRoute){
         if(e.ctrlKey){
             removeClosestPoint(e); 
         } else {
             addRoutePoint(e);
         }            
+    }
+    if(state == "draw"){
         canvas.onmousemove = mouseMoveDraw; 
     }
 }
@@ -259,16 +279,43 @@ $(document).ready(function() {
 	 
 	canvas.style.width='100%';
 	canvas.style.height='100%';
-	canvas.width  = $(canvas).parent().width();
-	canvas.height = $(canvas).parent().height();
+    canvas.width  = $(canvas).parent().width();
+    canvas.height = $(canvas).parent().height();
+	
+
+    $( window ).resize(function() {
+        canvas.width  = $(canvas).parent().width();
+        canvas.height = $(canvas).parent().height();
+        draw(img, scale, translatePos, rotAngle);
+    });
 
 	$(canvas).bind('mousewheel', scroll); //TODO: Works only for chrome???
 
 	canvas.onmousedown = mouseDown;
 	canvas.onmouseup = mouseUp;
 
-	$('#file-input').change(function(e) {
-        var file = e.target.files[0],
+    $('#gpx-input').change(function() {
+       $('#gpxLabel').html(extractFileName($('#gpx-input').val()));      
+    });
+
+    $('#file-input').change(function() {
+       $('#imgLabel').html(extractFileName($('#file-input').val()));      
+    });  
+
+});
+
+function initCanvas(){
+    if($('[name=routeRadio]:checked').val() == "gps") {
+        var file = $('#gpx-input')[0].files[0];
+        reader = new FileReader;
+        reader.onload = initGPX;
+        reader.readAsText(file);
+    }
+    if($('[name=routeRadio]:checked').val() == "manual") {};
+    if($('[name=mapRadio]:checked').val() == "file") {
+
+        //$( "#file-input-div" ).html("<h3>Loading image...</h3>");
+        var file = $('#file-input')[0].files[0],
             imageType = /image.*/;
         
         if (!file.type.match(imageType))
@@ -277,7 +324,75 @@ $(document).ready(function() {
         var reader = new FileReader();
         reader.onload = initImage;
         reader.readAsDataURL(file);
-        
-    });
-});
+    }
+    if($('[name=mapRadio]:checked').val() == "url") {
+        initImageUrl($("#image-url").val());
+    }
+}
 
+function initGPX(e){
+    var gpxPoints = {lat: [], lon: []};
+    var cartPoints = {x: [], y: []}; 
+    var parsed = new DOMParser().parseFromString(e.target.result, "text/xml");
+
+    //Get trackpoints
+    $(parsed).find('trkpt').each(function(){
+        gpxPoints.lat.push(parseFloat($(this).attr('lat')));
+        gpxPoints.lon.push(parseFloat($(this).attr('lon')));
+    });
+
+    //Convert to cartesian (simple)
+    for (var i=gpxPoints.lat.length-1; i>=0; i--) {
+        var y = ((-1 * gpxPoints.lat[i]) + 90) / 180;
+        var x = (gpxPoints.lon[i] + 180) / 360;
+        cartPoints.x.push(x);
+        cartPoints.y.push(y);
+    };
+
+    //================
+    //Transform to map
+    //================
+    var ymin = Number.POSITIVE_INFINITY;
+    var ymax = Number.NEGATIVE_INFINITY;
+    var xmin = Number.POSITIVE_INFINITY;
+    var xmax = Number.NEGATIVE_INFINITY;
+    var ytmpx, xtmp;
+    
+    //Find extremepoints 
+    for (var i=cartPoints.x.length-1; i>=0; i--) {
+        xtmp = cartPoints.x[i];
+        ytmp = cartPoints.y[i];
+        if (xtmp < xmin) xmin = xtmp;
+        if (xtmp > xmax) xmax = xtmp;
+        if (ytmp < ymin) ymin = ytmp;
+        if (ytmp > ymax) ymax = ytmp;
+    }
+
+    //Transform
+    for (var i=cartPoints.x.length-1; i>=0; i--) {
+        var u = (xmax - cartPoints.x[i])/(xmax-xmin);
+        var v = (ymax - cartPoints.y[i])/(ymax-ymin);
+        cartPoints.x [i]= -(u*0.45*canvas.height) + ((1-u)*0.45*canvas.height);
+        cartPoints.y[i] = -(v*0.45*canvas.height) + ((1-v)*0.45*canvas.height);
+    }
+    //Draw
+    route = cartPoints;
+    gpsRoute = true;
+} 
+
+function extractFileName(fullPath){
+    var startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+    var filename = fullPath.substring(startIndex);
+    if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+        filename = filename.substring(1);
+    }
+    return filename
+}
+
+
+
+function saveModal(){
+    $( ".modal-title" ).html("Save");
+    $( ".modal-body" ).html("Right click on the map and choose ''Save image as...'' to save the map.");
+    $('#myModal').modal('show');
+}
