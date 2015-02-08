@@ -1,5 +1,5 @@
 paper.install(window);
-var canvas, ctx, translatePos, scale, rotAngle, img;
+var canvas, ctx, translatePos, scale, rotAngle, img, movingPoint;
 var STEPSIZE = 50;
 var ROTSPEED = Math.PI/30;
 var SCALESPEED = 1.2;
@@ -9,6 +9,8 @@ var gpsRoute = false;
 var state = "move";
 var close = false;
 var fade = 0;
+var gpsFixedPoints = [];
+var cartPoints = {x: [], y: []}; 
 
 function initImage(e){
     img = new Image();
@@ -78,15 +80,24 @@ function drawPath() {
     ctx.beginPath(); 
     ctx.lineWidth="4";
     ctx.strokeStyle="red";
+    ctx.lineJoin="round";
     ctx.moveTo(route.x[0],route.y[0]);
     for (i = 1; i < route.x.length; i++){
         ctx.lineTo(route.x[i],route.y[i]);
     }    
     ctx.stroke();
-    if(state=="draw" && !gpsRoute)
-        for (i = 0; i < route.x.length; i++){
-            drawPoint(route.x[i],route.y[i], 2);
+    if(state=="draw"){
+        if(gpsRoute){
+            for (i = 0; i < gpsFixedPoints.length; i++){
+                drawPoint(route.x[gpsFixedPoints[i]],route.y[gpsFixedPoints[i]], 2);
+            }
+        } else {
+            for (i = 0; i < route.x.length; i++){
+                drawPoint(route.x[i],route.y[i], 2);
+            }
         }
+    }
+
    
 }
 
@@ -191,6 +202,70 @@ function mouseMoveDraw(e){
     }   
 }
 
+function mouseMovePoint(e){
+    routePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2)
+    routePoint = fromWindowToCanvas(routePoint)
+    routePoint = routePoint.subtract(translatePos)
+    route.x[movingPoint.idx] = routePoint.x;
+    route.y[movingPoint.idx] = routePoint.y;
+    recalcPath();
+    draw(img, scale, translatePos, rotAngle);
+    ctx.save();
+    setView();
+    drawPoint(route.x[movingPoint.idx],route.y[movingPoint.idx],4);
+    ctx.restore();
+}
+
+function recalcPath(){
+    if(gpsFixedPoints.length == 1){
+        console.log('ok');
+        dx = route.x[gpsFixedPoints[0]] - cartPoints.x[gpsFixedPoints[0]];
+        dy = route.y[gpsFixedPoints[0]] - cartPoints.y[gpsFixedPoints[0]];
+        console.log(dx);
+        for(var i = 0; i < route.x.length; i++){
+            if(i != gpsFixedPoints[0]){
+                route.x[i] = cartPoints.x[i] + dx;
+                route.y[i] = cartPoints.y[i] + dy;
+            }
+        }
+    } else if(gpsFixedPoints.length > 1){
+        for(var j = 0; j < gpsFixedPoints.length; j++){
+            if(j == 0){
+                if (gpsFixedPoints[j] != 0) {
+                    transformSegment(0,gpsFixedPoints[j],gpsFixedPoints[j],gpsFixedPoints[j+1]);
+                    console.log('1')
+                }
+            } else {
+                transformSegment(gpsFixedPoints[j-1],gpsFixedPoints[j],gpsFixedPoints[j-1],gpsFixedPoints[j]);
+                console.log('2')
+            }
+            if (j == gpsFixedPoints.length - 1 && gpsFixedPoints[j] != route.x.length-1) {
+                transformSegment(gpsFixedPoints[j],route.x.length-1,gpsFixedPoints[j-1],gpsFixedPoints[j]);
+                console.log('3')
+            }
+        }
+    }
+}
+
+function transformSegment(from,to,firstFixed,secFixed){
+    dx = cartPoints.x[secFixed]-cartPoints.x[firstFixed];
+    dy = cartPoints.y[secFixed]-cartPoints.y[firstFixed];
+    abs = Math.sqrt(dx*dx+dy*dy);
+    dx = route.x[secFixed]-route.x[firstFixed];
+    dy = route.y[secFixed]-route.y[firstFixed];
+    scaleDiff = Math.sqrt(dx*dx+dy*dy)/abs;
+    ang1 = Math.atan2((cartPoints.y[secFixed]-cartPoints.y[firstFixed]),(cartPoints.x[secFixed]-cartPoints.x[firstFixed]));
+    ang2 = Math.atan2((route.y[secFixed]-route.y[firstFixed]),(route.x[secFixed]-route.x[firstFixed]));
+    ang = ang1-ang2;
+    console.log(ang);
+    for (var i=from; i <= to ; i++) {
+        xvec = cartPoints.x[i] - cartPoints.x[firstFixed];
+        yvec = cartPoints.y[i] - cartPoints.y[firstFixed];
+        route.x[i] = route.x[firstFixed] + (Math.cos(ang)*xvec+Math.sin(ang)*yvec)*scaleDiff;
+        route.y[i] = route.y[firstFixed] + (-Math.sin(ang)*xvec+Math.cos(ang)*yvec)*scaleDiff;
+    }
+}
+
 function setState(newState, element){
     state = newState;    
     $("#toolbox i").css("color", "black");
@@ -204,21 +279,45 @@ function setState(newState, element){
 }
 
 function mouseDown(e){
-    canvas.onmousemove = null; 
     if(state == "move"){
         x = e.pageX;
         y = e.pageY;
-        drag = true;
         canvas.onmousemove = mouseMove;
-    } else if(state == "draw" && !gpsRoute){
-        if(e.ctrlKey){
+    } else if(state == "draw"){
+        if(gpsRoute){
+            var mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
+            mousePoint = fromWindowToCanvas(mousePoint);
+            mousePoint = mousePoint.subtract(translatePos);
+            movingPoint = findClosestPoint(route,mousePoint);
+            if($.inArray(movingPoint.idx,gpsFixedPoints) == -1){
+                console.log('ok');
+                gpsFixedPoints = sortedInsert(gpsFixedPoints,movingPoint.idx);
+            }
+            canvas.onmousemove = mouseMovePoint;
+        } else if(e.ctrlKey){
             removeClosestPoint(e); 
         } else {
             addRoutePoint(e);
         }            
     }
-    if(state == "draw"){
-        canvas.onmousemove = mouseMoveDraw; 
+}
+
+function sortedInsert(array,obj){
+    if(array.length == 0 || obj > array[array.length-1]) {
+        array.push(obj);
+        return array;
+    } else {
+        for(var i=0; i < array.length; i++){
+            if(obj < array[i]){
+                a1 = array.slice(0,i);
+                a1.push(obj);
+                a2 = array.slice(i,array.length);
+                console.log(a1);
+                console.log(a2);
+                array = a1.concat(a2);
+                return array;
+            }
+        }
     }
 }
 
@@ -226,6 +325,10 @@ function mouseUp(){
     if(state == "move"){
         canvas.onmousemove = null;
     }
+    if(state == "draw"){
+        canvas.onmousemove = mouseMoveDraw;
+    }
+    draw(img, scale, translatePos, rotAngle);
 }
 
 function addRoutePoint(e){
@@ -242,7 +345,7 @@ function removeClosestPoint(e){
     mousePoint = fromWindowToCanvas(mousePoint);
     mousePoint = mousePoint.subtract(translatePos);
     routePoint = findClosestPoint(route,mousePoint);
-    if(routePoint.dist < 5 / scale){
+    if(routePoint.dist < 15 / scale){
         removeRoutepoint(routePoint.idx);
         draw(img, scale, translatePos, rotAngle);
     }
@@ -332,7 +435,6 @@ function initCanvas(){
 
 function initGPX(e){
     var gpxPoints = {lat: [], lon: []};
-    var cartPoints = {x: [], y: []}; 
     var parsed = new DOMParser().parseFromString(e.target.result, "text/xml");
 
     //Get trackpoints
@@ -376,7 +478,8 @@ function initGPX(e){
         cartPoints.y[i] = -(v*0.45*canvas.height) + ((1-v)*0.45*canvas.height);
     }
     //Draw
-    route = cartPoints;
+    route = jQuery.extend(true, {}, cartPoints);
+
     gpsRoute = true;
 } 
 
