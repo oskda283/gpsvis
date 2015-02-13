@@ -8,7 +8,7 @@ body {
 }
 
 #file-input-div {
-  background-color: #EEEEEE;
+  background-color: #F8F8F8;
 	position:fixed;
   top: 50%;
   left: 50%;
@@ -17,6 +17,7 @@ body {
   padding: 0em;
   padding-top: 1em;
   padding-bottom: 1em;
+  box-shadow:  0px 8px 16px #CCCCCC;
 }
 
 #file-input-div  tbody td {
@@ -26,17 +27,35 @@ body {
   width: 25em;
 }
 
+#creator-navbar{
+  box-shadow:  0px 0px 20px #888888;
+}
+
 #file-input-div form {
   margin: 15px;
 }
 
 #toolbox {
   position:fixed; 
-  bottom:0; 
-  width:600px; 
+  bottom:0;
   padding: 10px; 
   background:rgba(255,255,255,0.8);
   /*display: none;*/
+}
+
+.btn-primary{
+  background-color: #008844;
+  border-color: #006633;
+}
+
+.btn-primary:hover{
+  background-color: #006633;
+  border-color: #004422;
+}
+
+.btn-primary:focus{
+  background-color: #006633;
+  border-color: #004422;
 }
 
 .btn-file {

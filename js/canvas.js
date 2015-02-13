@@ -87,18 +87,14 @@ function drawPath() {
     }    
     ctx.stroke();
     if(state=="draw"){
-        if(gpsRoute){
-            for (i = 0; i < gpsFixedPoints.length; i++){
-                drawPoint(route.x[gpsFixedPoints[i]],route.y[gpsFixedPoints[i]], 2);
-            }
-        } else {
-            for (i = 0; i < route.x.length; i++){
-                drawPoint(route.x[i],route.y[i], 2);
-            }
+        for (i = 0; i < route.x.length; i++){
+            drawPoint(route.x[i],route.y[i], 2);
         }
-    }
-
-   
+    } else if(state=="gps"){
+        for (i = 0; i < gpsFixedPoints.length; i++){
+            drawPoint(route.x[gpsFixedPoints[i]],route.y[gpsFixedPoints[i]], 2);
+        }
+    }   
 }
 
 function drawPoint(px,py,size) {
@@ -218,10 +214,8 @@ function mouseMovePoint(e){
 
 function recalcPath(){
     if(gpsFixedPoints.length == 1){
-        console.log('ok');
         dx = route.x[gpsFixedPoints[0]] - cartPoints.x[gpsFixedPoints[0]];
         dy = route.y[gpsFixedPoints[0]] - cartPoints.y[gpsFixedPoints[0]];
-        console.log(dx);
         for(var i = 0; i < route.x.length; i++){
             if(i != gpsFixedPoints[0]){
                 route.x[i] = cartPoints.x[i] + dx;
@@ -233,15 +227,12 @@ function recalcPath(){
             if(j == 0){
                 if (gpsFixedPoints[j] != 0) {
                     transformSegment(0,gpsFixedPoints[j],gpsFixedPoints[j],gpsFixedPoints[j+1]);
-                    console.log('1')
                 }
             } else {
                 transformSegment(gpsFixedPoints[j-1],gpsFixedPoints[j],gpsFixedPoints[j-1],gpsFixedPoints[j]);
-                console.log('2')
             }
             if (j == gpsFixedPoints.length - 1 && gpsFixedPoints[j] != route.x.length-1) {
                 transformSegment(gpsFixedPoints[j],route.x.length-1,gpsFixedPoints[j-1],gpsFixedPoints[j]);
-                console.log('3')
             }
         }
     }
@@ -257,7 +248,6 @@ function transformSegment(from,to,firstFixed,secFixed){
     ang1 = Math.atan2((cartPoints.y[secFixed]-cartPoints.y[firstFixed]),(cartPoints.x[secFixed]-cartPoints.x[firstFixed]));
     ang2 = Math.atan2((route.y[secFixed]-route.y[firstFixed]),(route.x[secFixed]-route.x[firstFixed]));
     ang = ang1-ang2;
-    console.log(ang);
     for (var i=from; i <= to ; i++) {
         xvec = cartPoints.x[i] - cartPoints.x[firstFixed];
         yvec = cartPoints.y[i] - cartPoints.y[firstFixed];
@@ -269,9 +259,9 @@ function transformSegment(from,to,firstFixed,secFixed){
 function setState(newState, element){
     state = newState;    
     $("#toolbox i").css("color", "black");
-    element.style.color = "#006dcc";
+    element.style.color = "#008844";
     draw(img, scale, translatePos, rotAngle); 
-    if(state == "draw"){
+    if(state == "draw" || state == "gps"){
         canvas.onmousemove = mouseMoveDraw; 
     } else {
         canvas.onmousemove = null;
@@ -284,21 +274,20 @@ function mouseDown(e){
         y = e.pageY;
         canvas.onmousemove = mouseMove;
     } else if(state == "draw"){
-        if(gpsRoute){
-            var mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
-            mousePoint = fromWindowToCanvas(mousePoint);
-            mousePoint = mousePoint.subtract(translatePos);
-            movingPoint = findClosestPoint(route,mousePoint);
-            if($.inArray(movingPoint.idx,gpsFixedPoints) == -1){
-                console.log('ok');
-                gpsFixedPoints = sortedInsert(gpsFixedPoints,movingPoint.idx);
-            }
-            canvas.onmousemove = mouseMovePoint;
-        } else if(e.ctrlKey){
+        if(e.ctrlKey){
             removeClosestPoint(e); 
         } else {
             addRoutePoint(e);
-        }            
+        } 
+    } else if(state == "gps"){
+        var mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
+        mousePoint = fromWindowToCanvas(mousePoint);
+        mousePoint = mousePoint.subtract(translatePos);
+        movingPoint = findClosestPoint(route,mousePoint);
+        if($.inArray(movingPoint.idx,gpsFixedPoints) == -1){
+            gpsFixedPoints = sortedInsert(gpsFixedPoints,movingPoint.idx);
+        }
+        canvas.onmousemove = mouseMovePoint;
     }
 }
 
@@ -312,8 +301,6 @@ function sortedInsert(array,obj){
                 a1 = array.slice(0,i);
                 a1.push(obj);
                 a2 = array.slice(i,array.length);
-                console.log(a1);
-                console.log(a2);
                 array = a1.concat(a2);
                 return array;
             }
@@ -325,7 +312,7 @@ function mouseUp(){
     if(state == "move"){
         canvas.onmousemove = null;
     }
-    if(state == "draw"){
+    if(state == "draw" || state == "gps"){
         canvas.onmousemove = mouseMoveDraw;
     }
     draw(img, scale, translatePos, rotAngle);
@@ -413,8 +400,13 @@ function initCanvas(){
         reader = new FileReader;
         reader.onload = initGPX;
         reader.readAsText(file);
+        $("#draw-tool").hide();
+        $('#erase-draw-tool').hide();
     }
-    if($('[name=routeRadio]:checked').val() == "manual") {};
+    if($('[name=routeRadio]:checked').val() == "manual") {
+        $("#gps-tool").hide();
+        $('#erase-gps-tool').hide();
+    };
     if($('[name=mapRadio]:checked').val() == "file") {
 
         //$( "#file-input-div" ).html("<h3>Loading image...</h3>");
@@ -431,6 +423,7 @@ function initCanvas(){
     if($('[name=mapRadio]:checked').val() == "url") {
         initImageUrl($("#image-url").val());
     }
+    $("#toolbox").show();
 }
 
 function initGPX(e){
