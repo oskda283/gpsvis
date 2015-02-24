@@ -44,18 +44,18 @@ body {
 }
 
 .btn-primary{
-  background-color: #008844;
-  border-color: #006633;
+  background-color: #008888;
+  border-color: #007777;
 }
 
 .btn-primary:hover{
-  background-color: #006633;
-  border-color: #004422;
+  background-color: #006666;
+  border-color: #004444;
 }
 
 .btn-primary:focus{
-  background-color: #006633;
-  border-color: #004422;
+  background-color: #006666;
+  border-color: #004444;
 }
 
 .btn-file {

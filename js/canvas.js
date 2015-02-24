@@ -184,7 +184,14 @@ function mouseMoveDraw(e){
     mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
     mousePoint = fromWindowToCanvas(mousePoint);
     mousePoint = mousePoint.subtract(translatePos);
-    routePoint = findClosestPoint(route,mousePoint);
+    if(state == "gps"){
+        routePoint = findClosestFixedPoint(gpsFixedPoints,mousePoint);
+        if(routePoint.dist > 15){
+            routePoint = findClosestPoint(route,mousePoint);
+        }
+    } else if(state == "draw"){
+        routePoint = findClosestPoint(route,mousePoint);
+    }
     if(routePoint.dist < 15 / scale){
         draw(img, scale, translatePos, rotAngle);
         ctx.save();
@@ -259,7 +266,7 @@ function transformSegment(from,to,firstFixed,secFixed){
 function setState(newState, element){
     state = newState;    
     $("#toolbox i").css("color", "black");
-    element.style.color = "#008844";
+    element.style.color = "#008888";
     draw(img, scale, translatePos, rotAngle); 
     if(state == "draw" || state == "gps"){
         canvas.onmousemove = mouseMoveDraw; 
@@ -283,11 +290,20 @@ function mouseDown(e){
         var mousePoint = new Point(e.pageX - canvas.width / 2, e.pageY - canvas.height / 2);
         mousePoint = fromWindowToCanvas(mousePoint);
         mousePoint = mousePoint.subtract(translatePos);
-        movingPoint = findClosestPoint(route,mousePoint);
-        if($.inArray(movingPoint.idx,gpsFixedPoints) == -1){
-            gpsFixedPoints = sortedInsert(gpsFixedPoints,movingPoint.idx);
+        movingPoint = findClosestFixedPoint(gpsFixedPoints,mousePoint);
+        if(movingPoint.dist > 50){
+            movingPoint = findClosestPoint(route,mousePoint);
+        } 
+        if (movingPoint.dist < 15) {
+            if($.inArray(movingPoint.idx,gpsFixedPoints) == -1){
+                gpsFixedPoints = sortedInsert(gpsFixedPoints,movingPoint.idx);
+            } else if(e.ctrlKey){
+                gpsFixedPoints.splice($.inArray(movingPoint.idx,gpsFixedPoints),1); 
+                recalcPath();
+                draw(img, scale, translatePos, rotAngle);
+            } 
+            canvas.onmousemove = mouseMovePoint;
         }
-        canvas.onmousemove = mouseMovePoint;
     }
 }
 
@@ -355,6 +371,17 @@ function findClosestPoint(path,point) {
         }
     }
     return {idx: minIdx, dist: minDist}; 
+}
+
+function findClosestFixedPoint(fixedIndexes,point){
+    path = {x: [], y: []};
+    for(i=0; i < fixedIndexes.length; i++){
+        path.x.push(route.x[fixedIndexes[i]]);
+        path.y.push(route.y[fixedIndexes[i]]);
+    }
+    closest = findClosestPoint(path,point);
+    closest.idx = fixedIndexes[closest.idx];
+    return closest;
 }
 
 function squareDist(xa,ya,xb,yb){
