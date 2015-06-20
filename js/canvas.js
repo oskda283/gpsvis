@@ -10,7 +10,7 @@ var state = "move";
 var close = false;
 var fade = 0;
 var gpsFixedPoints = [];
-var cartPoints = {x: [], y: []}; 
+var cartPoints = {x: [], y: [], t: [], dist: []}; 
 
 function initImage(e){
     img = new Image();
@@ -454,13 +454,14 @@ function initCanvas(){
 }
 
 function initGPX(e){
-    var gpxPoints = {lat: [], lon: []};
+    var gpxPoints = {lat: [], lon: [], t: []};
     var parsed = new DOMParser().parseFromString(e.target.result, "text/xml");
 
     //Get trackpoints
     $(parsed).find('trkpt').each(function(){
         gpxPoints.lat.push(parseFloat($(this).attr('lat')));
         gpxPoints.lon.push(parseFloat($(this).attr('lon')));
+        gpxPoints.t.push($(this).find('time').text());
     });
 
     //Convert to cartesian (simple)
@@ -478,7 +479,7 @@ function initGPX(e){
     var ymax = Number.NEGATIVE_INFINITY;
     var xmin = Number.POSITIVE_INFINITY;
     var xmax = Number.NEGATIVE_INFINITY;
-    var ytmpx, xtmp;
+    var ytmpx, xtmp,xz,xy,s;
     
     //Find extremepoints 
     for (var i=cartPoints.x.length-1; i>=0; i--) {
@@ -490,13 +491,21 @@ function initGPX(e){
         if (ytmp > ymax) ymax = ytmp;
     }
 
-    //Transform
-    for (var i=cartPoints.x.length-1; i>=0; i--) {
-        var u = (xmax - cartPoints.x[i])/(xmax-xmin);
-        var v = (ymax - cartPoints.y[i])/(ymax-ymin);
-        cartPoints.x [i]= -(u*0.45*canvas.height) + ((1-u)*0.45*canvas.height);
-        cartPoints.y[i] = -(v*0.45*canvas.height) + ((1-v)*0.45*canvas.height);
+    xz = (xmax+xmin)/2;
+    yz = (ymax+ymin)/2;
+    s = 0.9*img.height/(xmax-xmin); 
+
+    for (var i=0; i<cartPoints.x.length; i++) {
+
+        //fit into screen
+        cartPoints.x[i]= s*(cartPoints.x[i] - xz);
+        cartPoints.y[i]= s*(cartPoints.y[i] - yz);
+
+        //get seconds
+        startTime= new Date(gpxPoints.t[0]).getTime()/1000;
+        cartPoints.t[i]= new Date(gpxPoints.t[i]).getTime()/1000 - startTime;
     }
+
     //Draw
     route = jQuery.extend(true, {}, cartPoints);
 
