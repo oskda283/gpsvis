@@ -16,6 +16,16 @@ body {
   margin: auto;
 }
 
+#overview {
+  color: #FFFFFF;
+  display: inline-block;
+  margin: auto;
+}
+
+#overview  tbody td {
+  margin: 0 auto;
+}
+
 #file-input-div  tbody td {
   margin: 0 auto;
 }
@@ -37,6 +47,7 @@ body {
   border-color: #FFFFFF;
   border-width: 2px;
   color: #FFFFFF;
+  font-weight: bold;
 }
 
 .btn-primary:hover{
