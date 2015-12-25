@@ -35,63 +35,53 @@
 	    </div>
 	</nav>
 -->
-	<div id="file-input-div">
-		<table>
-			<tr>
-   				<td valign="top">
-					<h1>Get started!</h1>
-				</td>
-			</tr>
-			<tr>
-				<td>	
-   					<form class="form-horizontal">
-   						<div class="form-group">
-				       		<label class="btn btn-primary" for="gpx-input">
-								<input id="gpx-input" type="file" style="display:none;">
-								Choose gpx-file
-							</label>
-							<span id="gpxLabel"></span>
-   						</div>
-   					</form>
-   				</td>
-   			</tr>
-   			<tr>
-   				<td>
-   					<button id="startButton" type="button" class="btn btn-primary" onclick="init()" style="display:none;">
-					Go!
-					</button>
-   				</td>
-   			</tr>
-   		</table>       		  
-    </div>
+	<div id="file-input-div" class="center-block" style="max-width:400px">
+		<label class="btn btn-primary btn-lg btn-block" for="gpx-input">
+			<input id="gpx-input" type="file" style="display:none;"> Choose gpx-file
+		</label>
+	</div>
+	<div class"container">
+		<div class="row">
+  			<div class="col-md-4"></div>
+			<div class="col-md-4">
+				<div id="overview" class="panel panel-default" style="display:none;">
+			  		<div class="panel-heading">
+			    		<h3 class="panel-title">Overview</h3>
+			    	</div>
+			  		<div class="panel-body">
+			    		<table class="table">
+							<tr>
+				   				<td>
+				   				Total time:
+								</td>
+								<td>
+									<span id="totalTime"></span>
+								</td>
+							</tr>
+							<tr>
+				   				<td>
+				   				Total distance:
+								</td>
+								<td>
+									<span id="totalDistance"></span>
+								</td>
+							</tr>
+							<tr>
+				   				<td>
+				   				Average speed:
+								</td>
+								<td>
+									<span id="avgSpeed"></span>
+								</td>
+							</tr>
+			   			</table>
+			  		</div>
+				</div>
+			</div>
+  			<div class="col-md-4"></div>
+		</div>
+	</div>
 
-	<div id="overview" style="display:none;">
-		<table>
-			<tr>
-   				<td valign="top">
-					<h4>Overview</h4>
-				</td>
-			</tr>
-			<tr>
-   				<td>
-   				Total time:
-				</td>
-				<td>
-					<span id="totalTime"></span>
-				</td>
-			</tr>
-			<tr>
-   				<td>
-   				Total distance:
-				</td>
-				<td>
-					<span id="totalDistance"></span>
-				</td>
-			</tr>
-   		</table>       		  
-    </div>
-	
-	<!-- Modal -->
 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	  	<div class="modal-dialog">
 	    	<div class="modal-content">

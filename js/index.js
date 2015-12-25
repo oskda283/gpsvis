@@ -18,30 +18,35 @@ function init(){
 }
 
 function initGPX(e){
-    var gpxPoints = {lat: [], lon: [], t: []};
+    route.routePoints = [];
     var parsed = new DOMParser().parseFromString(e.target.result, "text/xml");
+    var trackpoints = $(parsed).find('trkpt');
+    var startTime= new Date($(trackpoints).first().find('time').text()).getTime()/1000;
 
-    //Get trackpoints
-    $(parsed).find('trkpt').each(function(){
-        gpxPoints.lat.push(parseFloat($(this).attr('lat')));
-        gpxPoints.lon.push(parseFloat($(this).attr('lon')));
-        gpxPoints.t.push($(this).find('time').text());
+    $(trackpoints).each(function(){
+        point = new Object();
+        point.lat = parseFloat($(this).attr('lat'));
+        point.lon = parseFloat($(this).attr('lon'));
+        point.t = new Date($(this).find('time').text()).getTime()/1000 - startTime;
+        point.ele = parseFloat($(this).find('ele').text());
+        route.routePoints.push(point);
     });
 
-    var startTime= new Date(gpxPoints.t[0]).getTime()/1000;
-
-    route.routePoints = [];
-
-    for (var i=0; i<gpxPoints.lat.length; i++) {
-        route.routePoints[i] = new Object();
-        route.routePoints[i].lat = gpxPoints.lat[i];
-        route.routePoints[i].lon = gpxPoints.lon[i];
-        route.routePoints[i].t = new Date(gpxPoints.t[i]).getTime()/1000 - startTime;
-        route.routePoints[i].d = (i == 0 ? 0 : route.routePoints[i-1].d + getDistanceBetweenPoints(i-1,i))
+    for (var i=0; i<route.routePoints.length; i++) {
+        route.routePoints[i].d = (i == 0 ? 0 : route.routePoints[i-1].d + getDistanceBetweenPoints(i-1,i));
+        if(i == 1) {
+            route.routePoints[0].v = getSecondsPerKm(route.routePoints[0], route.routePoints[1])
+        } else if(i > 1){
+            route.routePoints[i-1].v = getSecondsPerKm(route.routePoints[i-2], route.routePoints[i]);
+        }
+        if(i == route.routePoints.length - 1) {
+            route.routePoints[i].v = getSecondsPerKm(i-1,i);
+        }
     }
 
     route.totalTime = calcSeconds(0,route.routePoints.length - 1);
     route.totalDistance = calcDistance(0,route.routePoints.length - 1);
+    route.averageSpeed  = calcAverageSecondsPerKm(0,route.routePoints.length - 1);
     afterInit();
 }
 
@@ -53,6 +58,7 @@ function afterInit(){
 function showOverview(){
     $('#totalTime').html(secondsToTimeString(route.totalTime))
     $('#totalDistance').html(distanceToTimeString(route.totalDistance))
+    $('#avgSpeed').html(secondsToTimeString(route.averageSpeed))
     $('#overview').show()
 }
 
@@ -79,11 +85,15 @@ function calcDistance(startIdx, endIdx) {
     return route.routePoints[endIdx].d - route.routePoints[startIdx].d;
 }
 
+function calcAverageSecondsPerKm(startIdx, endIdx) {
+    return calcSeconds(startIdx, endIdx)/calcDistance(startIdx, endIdx);
+}
+
 function secondsToTimeString(timeInSeconds) {
     var hours = Math.floor(timeInSeconds/3600);
     var minutes = zeropad(Math.floor((timeInSeconds % 3600)/60));
     var seconds = zeropad(Math.floor(timeInSeconds % 60));
-    return hours + ":" + minutes + ":" + seconds;
+    return (hours > 0 ? hours + ":" : "") + minutes + ":" + seconds;
 }
 
 function distanceToTimeString(distanceInKm) {
@@ -96,6 +106,10 @@ function zeropad(number){
         number = '0' + number;
     }
     return number
+}
+
+function getSecondsPerKm(point1, point2){
+    return (point2.t - point1.t)/(point2.d - point1.d);   
 }
 
 function getDistanceBetweenPoints(startIdx, endIdx){

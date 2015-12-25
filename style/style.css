@@ -4,64 +4,39 @@ html{
 
 body {
   min-height: 100%;
-  margin-top: 10%;
   overflow: hidden;
-  background-color: #008888;
-  text-align: center;
+  background-color: #00DDDD;
 }
 
 #file-input-div {
-  color: #FFFFFF;
-  display: inline-block;
-  margin: auto;
+  margin-top: 10%;
 }
 
 #overview {
-  color: #FFFFFF;
-  display: inline-block;
-  margin: auto;
-}
-
-#overview  tbody td {
-  margin: 0 auto;
-}
-
-#file-input-div  tbody td {
-  margin: 0 auto;
+  margin: 20px;
 }
 
 #creator-navbar{
   box-shadow:  0px 0px 20px #888888;
 }
 
-#file-input-div form {
-  margin: 15px;
-}
-
-#file-input-div h1 {
-  font-size: 80px;
-}
-
 .btn-primary{
-  background-color: #008888;
+  background-color: #00DDDD;
   border-color: #FFFFFF;
-  border-width: 2px;
   color: #FFFFFF;
-  font-weight: bold;
+  border-width: 2px;
 }
 
 .btn-primary:hover{
   background-color: #FFFFFF;
   border-color: #FFFFFF;
-  border-width: 2px;
-  color: #008888;
+  color: #00DDDD;
 }
 
 .btn-primary:focus{
   background-color: #FFFFFF;
   border-color: #FFFFFF;
-  border-width: 2px;
-  color: #008888;
+  color: #00DDDD;
 }
 
 .btn-file {
