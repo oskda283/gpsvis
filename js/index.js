@@ -1,4 +1,5 @@
 var route = new Object();
+google.load('visualization', '1.0', {'packages':['corechart']});
 
 $(document).ready(function() {
 
@@ -53,6 +54,32 @@ function initGPX(e){
 function afterInit(){
     $('#file-input-div').hide();
     showOverview();
+    drawCharts();
+}
+
+function drawCharts(){
+    drawBasicChart();
+}
+
+function drawBasicChart(){
+
+    $('#chart1').show();
+    var dataArray = []
+    dataArray.push(['Time', 'Speed']);
+    console.log(dataArray);
+    for(var i=0; i<route.routePoints.length; i++){
+        dataArray.push([new Date(0,0,0,0,0,route.routePoints[i].t,0), new Date(0,0,0,0,0,route.routePoints[i].v,0)]);
+    }
+
+    var data = google.visualization.arrayToDataTable(dataArray);
+    var options = {
+          title: 'Speed',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('basic-chart'));
+
+    chart.draw(data, options);
 }
 
 function showOverview(){
