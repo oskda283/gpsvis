@@ -4,8 +4,7 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 	<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.2.min.js"></script>
-	<script type="text/javascript" src="js/paper-full.js"></script>
-	<script type="text/javascript" src="js/canvas.js"></script>
+	<script type="text/javascript" src="js/index.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="style/style.css">
 </head>
@@ -20,8 +19,6 @@
         <div id="navbarCollapse" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
                 <li><a href="#"><i class="fa fa-home fa-1x"></i> Home</a></li>
-                <li><a href="#"><i class="fa fa-plus fa-1x"></i> New map</a></li>
-                <li><a href="#" onclick="saveModal();return false;"><i class="fa fa-save fa-1x"></i> Save</a></li>
                 <li><a href="#"><i class="fa fa-cog fa-1x"></i> Settings</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -38,36 +35,15 @@
 	<div id="file-input-div">
 			<table>
 				<tr>
-					<td valign="top">
-						<h4>Map image-file:</h4>
-						<form class="form-horizontal">
-       						<div class="form-group">
-					       		<input type="radio" name="mapRadio" value="file" checked> From file</input></br>
-					       		<label class="btn btn-primary" for="file-input">
-									<input id="file-input" type="file" style="display:none;">
-									Browse
-								</label>
-								<span id="imgLabel"></span>
-							</div>
-							<div class="form-group">
-       							<input type="radio" name="mapRadio" value="url" > From url</input>
-       							<input id="image-url"  type="text" class="form-control" placeholder="URL">
-       						</div>
-       					</form>
-       				</td>
        				<td valign="top">
 						<h4>GPS-file:</h4>
        					<form class="form-horizontal">
        						<div class="form-group">
-					       		<input type="radio" name="routeRadio" value="gps" checked>From file</input></br>
 					       		<label class="btn btn-primary" for="gpx-input">
 									<input id="gpx-input" type="file" style="display:none;">
 									Browse
 								</label>
 								<span id="gpxLabel"></span>
-       						</div>
-       						<div class="form-group">
-       							<input type="radio" name="routeRadio" value="manual" > Draw route manually</input>
        						</div>
        					</form>
        				</td>
@@ -76,27 +52,11 @@
        				<td>
        				</td>
        				<td align="right">
-       					<button type="button" class="btn btn-primary" onclick="initCanvas()">OK</button>
+       					<button type="button" class="btn btn-primary" onclick="init()">OK</button>
        					<button type="button" class="btn btn-default" >Reset</button>     
        				</td>
        		</table>       		  
     </div>
-    <div id="toolbox" style="display: none;">
- 		<i id="move-tool" class="fa fa-arrows fa-3x" style="margin-left: 1em; color: #008888;" onclick="setState('move',this)"></i> 
-	  	<i id="draw-tool" class="fa fa-pencil fa-3x" style="margin-left: 1em; color: black;" onclick="setState('draw',this)"></i>
-	  	<i id="gps-tool" class="fa fa-pencil fa-3x" style="margin-left: 1em; color: black;" onclick="setState('gps',this)"></i>
-	  	<i id="erase-draw-tool" class="fa fa-eraser fa-3x" style="margin-left: 1em; color: black;" onclick=""></i>
-	  	<i id="erase-gps-tool" class="fa fa-eraser fa-3x" style="margin-left: 1em; color: black;" onclick=""></i>
-	  	<i id="cut-tool" class="fa fa-cut fa-3x" style="margin-left: 1em; color: black;" onclick=""></i>
-	  	<i id="splits-tool" class="fa fa-circle-o fa-3x" style="margin-left: 1em; color: black;" onclick=""></i>
-	 	<i id="analyze-tool" class="fa fa-table fa-3x" style="margin-left: 1em;  color: black;" onclick=""></i>
-	 	<i id="rotate-left" class="fa fa-rotate-left fa-3x" style="margin-left: 2em;  color: black;" onclick=""></i>
-	 	<i id="rotate-right" class="fa fa-rotate-right fa-3x" style="margin-left: 1em;  color: black;" onclick=""></i>
-	 	<i id="undo" class="fa fa-reply fa-3x" style="margin-left: 2em;  color: black;" onclick=""></i>
-	 	<i id="redo" class="fa fa-share fa-3x" style="margin-left: 1em;  color: black;" onclick=""></i>
-	</div>
-
-	<canvas>Your browser does not support the HTML5 canvas tag.</canvas>
 	
 	<!-- Modal -->
 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
