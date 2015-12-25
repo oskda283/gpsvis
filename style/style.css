@@ -4,27 +4,20 @@ html{
 
 body {
   min-height: 100%;
+  margin-top: 10%;
   overflow: hidden;
+  background-color: #008888;
+  text-align: center;
 }
 
 #file-input-div {
-  background-color: #F8F8F8;
-	position:fixed;
-  top: 50%;
-  left: 50%;
-  margin-left: -23em;
-  margin-top: -15em;
-  padding: 0em;
-  padding-top: 1em;
-  padding-bottom: 1em;
-  box-shadow:  0px 8px 16px #CCCCCC;
+  color: #FFFFFF;
+  display: inline-block;
+  margin: auto;
 }
 
 #file-input-div  tbody td {
-  padding: 40px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  width: 25em;
+  margin: 0 auto;
 }
 
 #creator-navbar{
@@ -35,27 +28,29 @@ body {
   margin: 15px;
 }
 
-#toolbox {
-  position:fixed; 
-  bottom:0;
-  padding: 10px; 
-  background:rgba(255,255,255,0.8);
-  /*display: none;*/
+#file-input-div h1 {
+  font-size: 80px;
 }
 
 .btn-primary{
   background-color: #008888;
-  border-color: #007777;
+  border-color: #FFFFFF;
+  border-width: 2px;
+  color: #FFFFFF;
 }
 
 .btn-primary:hover{
-  background-color: #006666;
-  border-color: #004444;
+  background-color: #FFFFFF;
+  border-color: #FFFFFF;
+  border-width: 2px;
+  color: #008888;
 }
 
 .btn-primary:focus{
-  background-color: #006666;
-  border-color: #004444;
+  background-color: #FFFFFF;
+  border-color: #FFFFFF;
+  border-width: 2px;
+  color: #008888;
 }
 
 .btn-file {

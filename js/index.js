@@ -11,7 +11,9 @@ function squareDist(xa,ya,xb,yb){
 $(document).ready(function() {
 
     $('#gpx-input').change(function() {
-       $('#gpxLabel').html(extractFileName($('#gpx-input').val()));      
+       //$('#gpxLabel').html(extractFileName($('#gpx-input').val()));
+       //$('#startButton').show();
+       init();
     });
 
 });

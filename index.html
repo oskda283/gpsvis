@@ -7,55 +7,62 @@
 	<script type="text/javascript" src="js/index.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="style/style.css">
+	<title>gpsvis</title>
 </head>
 <body>
+<!--
 	<nav role="navigation" class="navbar navbar-default navbar-fixed-top" id="creator-navbar">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <span class="navbar-brand">WOA Route Creator</span>
-        </div>
-        <!-- Collection of nav links and other content for toggling -->
-        <div id="navbarCollapse" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="#"><i class="fa fa-home fa-1x"></i> Home</a></li>
-                <li><a href="#"><i class="fa fa-cog fa-1x"></i> Settings</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li>
-                	<a href="#">
-                		<i class="fa fa-sign-in fa-1x"></i>  
-                		Login
-                	</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+	    <div class="container-fluid">
+	        <!-- Brand and toggle get grouped for better mobile display 
+	        <div class="navbar-header">
+	            <span class="navbar-brand">GPSvis</span>
+	        </div>
+	        <!-- Collection of nav links and other content for toggling 
+	        <div id="navbarCollapse" class="collapse navbar-collapse">
+	            <ul class="nav navbar-nav">
+	                <li><a href="#"><i class="fa fa-home fa-1x"></i> Home</a></li>
+	                <li><a href="#"><i class="fa fa-cog fa-1x"></i> Settings</a></li>
+	            </ul>
+	            <ul class="nav navbar-nav navbar-right">
+	                <li>
+	                	<a href="#">
+	                		<i class="fa fa-sign-in fa-1x"></i>  
+	                		Login
+	                	</a>
+	                </li>
+	            </ul>
+	        </div>
+	    </div>
+	</nav>
+-->
 	<div id="file-input-div">
-			<table>
-				<tr>
-       				<td valign="top">
-						<h4>GPS-file:</h4>
-       					<form class="form-horizontal">
-       						<div class="form-group">
-					       		<label class="btn btn-primary" for="gpx-input">
-									<input id="gpx-input" type="file" style="display:none;">
-									Browse
-								</label>
-								<span id="gpxLabel"></span>
-       						</div>
-       					</form>
-       				</td>
-       			</tr>
-       			<tr>
-       				<td>
-       				</td>
-       				<td align="right">
-       					<button type="button" class="btn btn-primary" onclick="init()">OK</button>
-       					<button type="button" class="btn btn-default" >Reset</button>     
-       				</td>
-       		</table>       		  
+		<table>
+			<tr>
+   				<td valign="top">
+					<h1>Get started!</h1>
+				</td>
+			</tr>
+			<tr>
+				<td>	
+   					<form class="form-horizontal">
+   						<div class="form-group">
+				       		<label class="btn btn-primary" for="gpx-input">
+								<input id="gpx-input" type="file" style="display:none;">
+								Choose gpx-file
+							</label>
+							<span id="gpxLabel"></span>
+   						</div>
+   					</form>
+   				</td>
+   			</tr>
+   			<tr>
+   				<td>
+   					<button id="startButton" type="button" class="btn btn-primary" onclick="init()" style="display:none;">
+					Go!
+					</button>
+   				</td>
+   			</tr>
+   		</table>       		  
     </div>
 	
 	<!-- Modal -->
