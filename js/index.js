@@ -1,4 +1,5 @@
 var route = new Object();
+var trackpoints;
 google.load('visualization', '1.0', {'packages':['corechart']});
 
 $(document).ready(function() {
@@ -21,7 +22,7 @@ function init(){
 function initGPX(e){
     route.routePoints = [];
     var parsed = new DOMParser().parseFromString(e.target.result, "text/xml");
-    var trackpoints = $(parsed).find('trkpt');
+    trackpoints = $(parsed).find('trkpt');
     var startTime= new Date($(trackpoints).first().find('time').text()).getTime()/1000;
 
     $(trackpoints).each(function(){
@@ -30,6 +31,7 @@ function initGPX(e){
         point.lon = parseFloat($(this).attr('lon'));
         point.t = new Date($(this).find('time').text()).getTime()/1000 - startTime;
         point.ele = parseFloat($(this).find('ele').text());
+        point.hr = parseFloat($($(this).find('extensions').children()[0]).children().text()); //WTF!
         route.routePoints.push(point);
     });
 
@@ -58,10 +60,11 @@ function afterInit(){
 }
 
 function drawCharts(){
-    drawBasicChart();
+    drawSpeedChart();
+    drawHrChart();
 }
 
-function drawBasicChart(){
+function drawSpeedChart(){
     $('#chart1').show();
     var dataArray = []
     dataArray.push(['Time', 'Speed']);
@@ -77,6 +80,26 @@ function drawBasicChart(){
           legend: { position: 'bottom' }
     };
     var chart = new google.visualization.LineChart(document.getElementById('basic-chart'));
+
+    chart.draw(data, options);
+}
+
+function drawHrChart(){
+    $('#chart2').show();
+    var dataArray = []
+    dataArray.push(['Time', 'HR']);
+    console.log(dataArray);
+    for(var i=0; i<route.routePoints.length; i++){
+        dataArray.push([new Date(0,0,0,0,0,route.routePoints[i].t,0), route.routePoints[i].hr]);
+    }
+
+    var data = google.visualization.arrayToDataTable(dataArray);
+    var options = {
+          title: 'HR',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('hr-chart'));
 
     chart.draw(data, options);
 }
