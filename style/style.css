@@ -5,7 +5,8 @@ html{
 body {
   min-height: 100%;
   overflow: hidden;
-  background-color: #00DDDD;
+  background-color: #009999;
+  margin: 20px;
 }
 
 #file-input-div {
@@ -13,7 +14,8 @@ body {
 }
 
 .panel {
-  margin: 20px;
+  margin: 0px;
+  margin-top: 10px;
 }
 
 #creator-navbar{
@@ -21,7 +23,7 @@ body {
 }
 
 .btn-primary{
-  background-color: #00DDDD;
+  background-color: #009999;
   border-color: #FFFFFF;
   color: #FFFFFF;
   border-width: 2px;
@@ -30,13 +32,13 @@ body {
 .btn-primary:hover{
   background-color: #FFFFFF;
   border-color: #FFFFFF;
-  color: #00DDDD;
+  color: #009999;
 }
 
 .btn-primary:focus{
   background-color: #FFFFFF;
   border-color: #FFFFFF;
-  color: #00DDDD;
+  color: #009999;
 }
 
 .btn-file {

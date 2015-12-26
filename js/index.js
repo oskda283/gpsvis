@@ -62,7 +62,6 @@ function drawCharts(){
 }
 
 function drawBasicChart(){
-
     $('#chart1').show();
     var dataArray = []
     dataArray.push(['Time', 'Speed']);
